@@ -6,6 +6,7 @@ import org.hibernate.annotations.ConverterRegistration;
 
 import com.caina.pautaservices.config.utils.converter.LocalDateTimeConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
@@ -37,6 +38,7 @@ public class Pauta {
     private Integer pautaID;
     
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "autor", referencedColumnName = "usuario_id", nullable = false)
 	private Usuario autor;
     

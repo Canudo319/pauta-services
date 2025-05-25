@@ -4,11 +4,17 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.caina.pautaservices.beans.dtos.PautaDTO;
@@ -34,6 +40,15 @@ public class PautaController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @GetMapping("/abertas")
+    public ResponseEntity<Page<Pauta>> findPautasAbertas(
+        @RequestParam(required = false) Optional<String> tituloPauta,
+        @RequestParam(defaultValue = "0") Integer page
+    ) {
+        Pageable pageable = PageRequest.of(page, 10, Sort.by("dataEncerramento"));
+
+        return ResponseEntity.ok(pautaRepository.findPautasAbertas(LocalDateTime.now(), tituloPauta.orElse(""), pageable));
+    }
 
     @PostMapping("/create")
     @Transactional
@@ -53,7 +68,7 @@ public class PautaController {
 
         /* Valida se a data de encerramento é anterior a data de abertura */
         if(dataEncerramento.isBefore(dataAbertura)){
-            throw new BusinessException("A abertura deve ser antes de encerramento");
+            throw new BusinessException("A abertura deve ser antes do encerramento");
         }
 
         Pauta pauta = Pauta.builder()

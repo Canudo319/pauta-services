@@ -1,7 +1,5 @@
 package com.caina.pautaservices.beans.dtos;
 
-import java.util.Optional;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.validation.constraints.NotNull;
