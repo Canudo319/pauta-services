@@ -1,0 +1,10 @@
+spring:
+    application.name: pautaservices
+
+    jpa:
+        database-platform: org.hibernate.community.dialect.SQLiteDialect
+        show-sql: true
+
+    datasource:
+        url: jdbc:sqlite:D:\projetos\sqlite_database\desafio_sicredi
+        driver-class-name: org.sqlite.JDBC
