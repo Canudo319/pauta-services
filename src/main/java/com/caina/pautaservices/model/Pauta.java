@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.ConverterRegistration;
 
 import com.caina.pautaservices.config.utils.converter.LocalDateTimeConverter;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
@@ -46,16 +47,20 @@ public class Pauta {
 	private String descricaoPauta;
     
     @Column(name = "data_criacao", nullable = false)
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Builder.Default
 	private LocalDateTime dataCriacao = LocalDateTime.now();
 
     @Column(name = "data_abertura", nullable = false)
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime dataAbertura;
 
     @Column(name = "data_encerramento", nullable = false)
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime dataEncerramento;
     
     @Column(name = "data_alteracao", nullable = false)
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Builder.Default
 	private LocalDateTime dataAlteracao = LocalDateTime.now();
 }
