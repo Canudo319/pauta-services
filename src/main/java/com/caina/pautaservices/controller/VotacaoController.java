@@ -7,11 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.caina.pautaservices.beans.dtos.ResultadoVotacaoDTO;
 import com.caina.pautaservices.beans.dtos.VoteDTO;
+import com.caina.pautaservices.beans.enums.ResultadoStatus;
 import com.caina.pautaservices.beans.enums.VoteStatus;
 import com.caina.pautaservices.beans.exceptions.BusinessException;
 import com.caina.pautaservices.beans.exceptions.NotFoundException;
@@ -28,9 +31,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
-
 @RestController
-@RequestMapping("/votacao") 
+@RequestMapping("/votacao")
 public class VotacaoController {
     
     @Autowired
@@ -43,7 +45,7 @@ public class VotacaoController {
     private PautaRepository pautaRepository;
 
     @GetMapping("/isAbleToVote")
-    public ResponseEntity<Map<String, VoteStatus>> getMethodName(
+    public ResponseEntity<Map<String, VoteStatus>> isAbleToVote(
         @RequestParam Integer associadoID,
         @RequestParam Integer pautaID
     ) {
@@ -64,7 +66,7 @@ public class VotacaoController {
     }
     
     @PostMapping("/vote")
-    public ResponseEntity<VotosPauta> postMethodName(@Valid @RequestBody VoteDTO dto) {
+    public ResponseEntity<VotosPauta> voteMethod(@Valid @RequestBody VoteDTO dto) {
         String voto = switch(dto.getVoto().trim().toUpperCase()) {
             case "S", "SIM", "SS" -> "S";
             case "N", "NAO", "NÃO", "NN" -> "N";
@@ -79,6 +81,7 @@ public class VotacaoController {
             return new NotFoundException("Pauta", dto.getPautaID());
         });
 
+        /* Não permite votar em uma pauta que ainda não abriu ou já se encerrou */
         LocalDateTime horaVoto = LocalDateTime.now();
         if(horaVoto.isBefore(pauta.getDataAbertura())){
             throw new BusinessException("Essa Pauta ainda não foi aberta");
@@ -99,6 +102,32 @@ public class VotacaoController {
         .build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(votosPautaRepository.save(votosPauta));
+    }
+    
+    @GetMapping("/result/{pautaID}")
+    public ResponseEntity<ResultadoVotacaoDTO> findResult(@PathVariable Integer pautaID) {
+        Pauta pauta = pautaRepository.findById(pautaID).orElseThrow(() -> new NotFoundException("Pauta", pautaID));
+
+        ResultadoVotacaoDTO resultado = votosPautaRepository.findResultado(pauta).orElseThrow(() -> {
+            return new BusinessException("Essa Pauta ainda não possui votos");
+        });
+        
+        /* Se a pauta ainda não foi encerrada, O Resultado é indefindo  */
+        LocalDateTime horarioConferencia = LocalDateTime.now();
+        if(horarioConferencia.isBefore(pauta.getDataEncerramento())){
+            resultado.setVencedor(ResultadoStatus.INDEFINIDO);
+        }else{
+            Long valorResultado = resultado.getVotosAfavor() - resultado.getVotosContra();
+            if(valorResultado == 0){
+                resultado.setVencedor(ResultadoStatus.EMPATE);
+            }else if(valorResultado > 1){
+                resultado.setVencedor(ResultadoStatus.A_FAVOR);
+            }else{
+                resultado.setVencedor(ResultadoStatus.CONTRA);
+            }
+        }
+
+        return ResponseEntity.ok(resultado);
     }
     
 }
