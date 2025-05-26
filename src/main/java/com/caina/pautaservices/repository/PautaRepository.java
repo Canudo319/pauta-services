@@ -14,6 +14,7 @@ import com.caina.pautaservices.model.Pauta;
 @Repository
 public interface PautaRepository extends JpaRepository<Pauta, Integer> {
     
+    /* Busca somente as Pautas que ainda não estão encerradas */
     @Query("""
         select a from Pauta a
         where
